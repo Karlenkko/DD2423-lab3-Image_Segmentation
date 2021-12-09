@@ -19,13 +19,18 @@ def kmeans_example():
     h = ImageFilter.GaussianBlur(image_sigma)
     I = np.asarray(img.filter(ImageFilter.GaussianBlur(image_sigma))).astype(np.float32)
     segm, centers = kmeans_segm(I, K, L, seed)
-    Inew = mean_segments(img, segm)
+    Iseg = mean_segments(img, segm)
     if True:
         Inew = overlay_bounds(img, segm)
 
     img = Image.fromarray(Inew.astype(np.ubyte))
+    plt.subplot(1, 2, 1)
     plt.imshow(img)
     plt.axis('off')
+    plt.subplot(1, 2, 2)
+    plt.imshow(Image.fromarray(Iseg.astype(np.ubyte)))
+    plt.axis('off')
+    plt.title("K=" + str(K))
     plt.show()
     img.save('result/kmeans.png')
 

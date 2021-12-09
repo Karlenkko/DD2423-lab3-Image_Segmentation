@@ -24,27 +24,32 @@ def kmeans_segm(image, K, L, seed=42):
     flatten = np.reshape(image, (-1, 3))
     segmentation = flatten
     np.random.seed(seed)
-    randoms = np.random.randint(low=0, high=np.shape(flatten)[0], size=K)
-    centers = flatten[randoms, :]
+    # centers = np.random.rand(K, 3) * 255.0
+    spectre = np.unique(flatten, axis=0)
+    randoms = np.random.randint(low=0, high=np.shape(spectre)[0], size=K)
+    centers = spectre[randoms, :]
+    old_centers = np.zeros(np.shape(centers))
+    # movements = np.zeros(L)
     # for i in range(K):
     #     centers[i, :] = flatten[randoms[i]]
-
+    converge = 0
     for i in range(L):
         dists = distance_matrix(flatten, centers)
-        oldCenters = centers
-
-        segmentation = np.argmin(dists,1)
+        # movements[i] = sum(np.min(dists, axis=1))   # pixels
+        segmentation = np.argmin(dists,1)   # pixels
+        # plt.hist(segmentation)
+        # plt.show()
         for center in range(K):
+            old_centers[center, :] = centers[center, :]
             cluster_points = np.nonzero(segmentation == center)
             cluster_points = np.reshape(cluster_points, (-1))
             # print(cluster_points)
             mean = np.mean(flatten[cluster_points])
             centers[center, :] = mean
-
-        if np.max(np.abs(oldCenters - centers)) ==0:
-            print(i)
+        converge = i
+        if np.max(np.max(abs(old_centers - centers))) < 0.01:
             break
-
+    print("Converge at " + str(converge + 1))
     segmentation = np.reshape(segmentation, (np.shape(image)[0], np.shape(image)[1]))
     return segmentation, centers
 
