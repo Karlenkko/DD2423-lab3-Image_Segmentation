@@ -9,7 +9,8 @@ from scipy.ndimage.filters import gaussian_filter
 from scipy.spatial import distance_matrix
 from scipy.signal import convolve2d
 
-#   Performing the continuous max-flow algorithm to solve the 
+
+#   Performing the continuous max-flow algorithm to solve the
 #   continuous min-cut problem in 2D
 #    
 #   Usage: [u, erriter, i, timet] = CMF_Cut;
@@ -77,17 +78,16 @@ from scipy.signal import convolve2d
 #
 
 def cmf_cut(ur, alpha):
-    
     [rows, cols] = np.shape(ur)
-    imgSize = rows*cols
+    imgSize = rows * cols
 
-    cc = 0.3         # step-size of the augmented Lagrangian method, typically [0.3, 3]
+    cc = 0.3  # step-size of the augmented Lagrangian method, typically [0.3, 3]
     errbound = 1e-4  # error bound for convergence
-    numIter = 100    # maximum iteration number (100)
-    steps = 0.16     # step-size for gradient projection step to total variation, typically [0.1, 0.17]
+    numIter = 100  # maximum iteration number (100)
+    steps = 0.16  # step-size for gradient projection step to total variation, typically [0.1, 0.17]
 
     # build up the data terms
-    urb = 0.8*ur + 0.1
+    urb = 0.8 * ur + 0.1
     Cs = -np.log(1.0 - urb).astype(np.float32)
     Ct = -np.log(urb).astype(np.float32)
 
@@ -98,111 +98,118 @@ def cmf_cut(ur, alpha):
     pt = ps
 
     # the initial value of the spatial flow fiels p = (pp1, pp2) is set to be zero.
-    pp1 = np.zeros((rows, cols+1), dtype=np.float32)
-    pp2 = np.zeros((rows+1, cols), dtype=np.float32)
-    divp = pp1[:,1:cols+1] - pp1[:,0:cols] + pp2[1:rows+1,:] - pp2[0:rows,:]
+    pp1 = np.zeros((rows, cols + 1), dtype=np.float32)
+    pp2 = np.zeros((rows + 1, cols), dtype=np.float32)
+    divp = pp1[:, 1:cols + 1] - pp1[:, 0:cols] + pp2[1:rows + 1, :] - pp2[0:rows, :]
 
     erriter = np.zeros((numIter, 1))
 
     for i in range(numIter):
         # update the spatial flow field p = (pp1, pp2):
         #   the following steps are the gradient descent step with steps as the step-size.
-        pts = divp - (ps - pt + u/cc)
-        pp1[:,1:cols] = pp1[:,1:cols] + steps*(pts[:,1:cols] - pts[:,0:cols-1]) 
-        pp2[1:rows,:] = pp2[1:rows,:] + steps*(pts[1:rows,:] - pts[0:rows-1,:])
+        pts = divp - (ps - pt + u / cc)
+        pp1[:, 1:cols] = pp1[:, 1:cols] + steps * (pts[:, 1:cols] - pts[:, 0:cols - 1])
+        pp2[1:rows, :] = pp2[1:rows, :] + steps * (pts[1:rows, :] - pts[0:rows - 1, :])
 
         # the following steps give the projection to make |p(x)| <= alpha(x)
-        gk = np.sqrt((pp1[:,0:cols]**2 + pp1[:,1:cols+1]**2 + pp2[0:rows,:]**2 + pp2[1:rows+1,:]**2)*0.5)
+        gk = np.sqrt(
+            (pp1[:, 0:cols] ** 2 + pp1[:, 1:cols + 1] ** 2 + pp2[0:rows, :] ** 2 + pp2[1:rows + 1, :] ** 2) * 0.5)
         gk = (np.where(gk <= alpha, 1, 0) + np.where(gk <= alpha, 0, 1) * (gk / alpha)).astype(np.float32)
         gk = 1 / gk
-        
-        pp1[:,1:cols] = (0.5*(gk[:,1:cols] + gk[:,0:cols-1])) * pp1[:,1:cols] 
-        pp2[1:rows,:] = (0.5*(gk[1:rows,:] + gk[0:rows-1,:])) * pp2[1:rows,:]
-        divp = pp1[:,1:cols+1] - pp1[:,0:cols] + pp2[1:rows+1,:] - pp2[0:rows,:]
-        
+
+        pp1[:, 1:cols] = (0.5 * (gk[:, 1:cols] + gk[:, 0:cols - 1])) * pp1[:, 1:cols]
+        pp2[1:rows, :] = (0.5 * (gk[1:rows, :] + gk[0:rows - 1, :])) * pp2[1:rows, :]
+        divp = pp1[:, 1:cols + 1] - pp1[:, 0:cols] + pp2[1:rows + 1, :] - pp2[0:rows, :]
+
         # updata the source flow ps
-        pts = divp + pt - u/cc + 1/cc
+        pts = divp + pt - u / cc + 1 / cc
         ps = np.minimum(pts, Cs)
-    
+
         # update the sink flow pt
-        pts = - divp + ps + u/cc
+        pts = - divp + ps + u / cc
         pt = np.minimum(pts, Ct)
 
-	# update the multiplier u
-        erru = cc*(divp + pt  - ps)
+        # update the multiplier u
+        erru = cc * (divp + pt - ps)
         u = u - erru
 
         # evaluate the avarage error
-        erriter[i] = np.sum(np.abs(erru))/imgSize
-        
+        erriter[i] = np.sum(np.abs(erru)) / imgSize
+
         if erriter[i] < errbound:
             break
 
-    print('number of iterations = %u' % (i+1))
+    print('number of iterations = %u' % (i + 1))
     return u, erriter, i
 
 
-
 def graphcut_segm(I, area, K, alpha, sigma):
-    [ minx, miny, maxx, maxy ] = area
-    [h,w,c] = np.shape(I)
+    [minx, miny, maxx, maxy] = area
+    [h, w, c] = np.shape(I)
     dw = maxx - minx + 1
     dh = maxy - miny + 1
     mask = np.zeros((h, w), dtype=np.int16)
-    mask[miny:miny+dh, minx:minx+dw] = 1
+    mask[miny:miny + dh, minx:minx + dw] = 1
 
-    grey = 0.2989*I[:,:,0] + 0.5870*I[:,:,1] + 0.1140*I[:,:,2]
+    grey = 0.2989 * I[:, :, 0] + 0.5870 * I[:, :, 1] + 0.1140 * I[:, :, 2]
 
-    blur = 0.5 # amount of blur to reduce noise
-    gauss = np.array([[ math.exp(-(i*i)/(2*blur*blur)) for i in range(-3, 4) ]], dtype=np.float32)
-    gauss = gauss/np.sum(gauss) # normalize to one
+    blur = 0.5  # amount of blur to reduce noise
+    gauss = np.array([[math.exp(-(i * i) / (2 * blur * blur)) for i in range(-3, 4)]], dtype=np.float32)
+    gauss = gauss / np.sum(gauss)  # normalize to one
     grey = convolve2d(grey, gauss.T @ gauss, 'same', 'symm')
 
-    sobel = np.array([[-1, 0, 1], [-2,0,2], [-1,0,1]], dtype=np.float32)/4
-    dx = convolve2d(grey, sobel,   'same', 'fill', 0)
+    sobel = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=np.float32) / 4
+    dx = convolve2d(grey, sobel, 'same', 'fill', 0)
     dy = convolve2d(grey, sobel.T, 'same', 'fill', 0)
-    grad = np.sqrt(dx**2 + dy**2)
+    grad = np.sqrt(dx ** 2 + dy ** 2)
 
-    edge = (alpha*sigma)*np.ones((h,w)) / (grad + sigma)
+    edge = (alpha * sigma) * np.ones((h, w)) / (grad + sigma)
 
     for l in range(3):
         print('Find Gaussian mixture models...')
         fprob = mixture_prob(I, K, 10, mask)
-        bprob = mixture_prob(I, K, 10, 1-mask)
-        prior = np.reshape(fprob/(fprob + bprob), (h, w))
+        bprob = mixture_prob(I, K, 10, 1 - mask)
+        prior = np.reshape(fprob / (fprob + bprob), (h, w))
 
         print('Find minimum cut...')
         [u, erriter, i] = cmf_cut(prior, edge)
-        mask = (u>0.5).astype(np.int16)
+        mask = (u > 0.5).astype(np.int16)
 
     return mask, prior
+
 
 ##############################
 
 
 def graphcut_example():
-    scale_factor = 0.5           # image downscale factor
-    area = [ 80, 110, 570, 300 ] # image region to train foreground with [ minx, miny, maxx, maxy ]
-    K = 16                       # number of mixture components
-    alpha = 8.0                  # maximum edge cost
-    sigma = 20.0                 # edge cost decay factor
+    scale_factor = 0.5  # image downscale factor
+    area = [80, 110, 570, 300]  # image region to train foreground with [ minx, miny, maxx, maxy ]
+    K = 16  # number of mixture components
+    alpha = 8.0  # maximum edge cost
+    sigma = 20.0  # edge cost decay factor
 
     img = Image.open('Images-jpg/tiger1.jpg')
-    img = img.resize((int(img.size[0]*scale_factor), int(img.size[1]*scale_factor)))
+    img = img.resize((int(img.size[0] * scale_factor), int(img.size[1] * scale_factor)))
 
-    area = [ int(i*scale_factor) for i in area ]
+    area = [int(i * scale_factor) for i in area]
     I = np.asarray(img).astype(np.float32)
     segm, prior = graphcut_segm(I, area, K, alpha, sigma)
-    
-    Inew = mean_segments(img, segm)
+
+    Iseg = mean_segments(img, segm)
     if True:
         Inew = overlay_bounds(img, segm)
 
     img = Image.fromarray(Inew.astype(np.ubyte))
+    plt.subplot(1, 2, 1)
     plt.imshow(img)
     plt.axis('off')
+    plt.subplot(1, 2, 2)
+    plt.imshow(Image.fromarray(Iseg.astype(np.ubyte)))
+    plt.axis('off')
+    plt.title("K=" + str(K))
     plt.show()
     img.save('result/graphcut.png')
+
 
 if __name__ == '__main__':
     sys.exit(graphcut_example())
