@@ -229,13 +229,18 @@ def norm_cuts_example():
     I = np.asarray(img.filter(ImageFilter.GaussianBlur(image_sigma))).astype(np.float32)
     
     segm = norm_cuts_segm(I, colour_bandwidth, radius, ncuts_thresh, min_area, max_depth)
-    Inew = mean_segments(img, segm)
+    Iseg = mean_segments(img, segm)
     if True:
         Inew = overlay_bounds(img, segm)
 
     img = Image.fromarray(Inew.astype(np.ubyte))
+    plt.subplot(1, 2, 1)
     plt.imshow(img)
     plt.axis('off')
+    plt.subplot(1, 2, 2)
+    plt.imshow(Image.fromarray(Iseg.astype(np.ubyte)))
+    plt.axis('off')
+    plt.title("min_area=" + str(min_area) + ", max_depth=" + str(max_depth) + ", ncuts_thresh=" + str(ncuts_thresh) + ", colour_bandwidth=" + str(colour_bandwidth))
     plt.show()
     img.save('result/normcuts1.png')
 

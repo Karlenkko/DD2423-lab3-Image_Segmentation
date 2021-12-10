@@ -97,13 +97,18 @@ def mean_shift_example():
     I = np.asarray(img.filter(ImageFilter.GaussianBlur(image_sigma))).astype(np.float32)
 
     segm = mean_shift_segm(I, spatial_bandwidth, colour_bandwidth, num_iterations)
-    Inew = mean_segments(img, segm)
+    Iseg = mean_segments(img, segm)
     if True:
         Inew = overlay_bounds(img, segm)
 
     img = Image.fromarray(Inew.astype(np.ubyte))
+    plt.subplot(1, 2, 1)
     plt.imshow(img)
     plt.axis('off')
+    plt.subplot(1, 2, 2)
+    plt.imshow(Image.fromarray(Iseg.astype(np.ubyte)))
+    plt.axis('off')
+    plt.title("spatial =" + str(spatial_bandwidth) + ", colour = " + str(colour_bandwidth))
     plt.show()
     img.save('result/meanshift.png')
 

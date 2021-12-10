@@ -68,7 +68,10 @@ def mixture_prob(image, K, L, mask):
     Output:
         prob: an image with probabilities per pixel
     """
-    # return prob
+    Ivec = np.reshape(image, (-1, 3)).astype(np.float32)
+    diff = Ivec - mask
+
+    return prob
 
 
 if __name__ == '__main__':
