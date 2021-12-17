@@ -6,14 +6,14 @@ from lab3 import kmeans_segm
 from Functions import mean_segments, overlay_bounds
 
 def kmeans_example():
-    K = 10              # number of clusters used
-    L = 50              # number of iterations
+    K = 20              # number of clusters used
+    L = 200              # number of iterations
     seed = 14           # seed used for random initialization
-    scale_factor = 0.5  # image downscale factor
+    scale_factor = 0.25  # image downscale factor
     image_sigma = 1.0   # image preblurring scale
     
-    img = Image.open('Images-jpg/orange.jpg')
-    # img = Image.open('Images-jpg/tiger1.jpg')
+    # img = Image.open('Images-jpg/orange.jpg')
+    img = Image.open('Images-jpg/tiger1.jpg')
     img = img.resize((int(img.size[0]*scale_factor), int(img.size[1]*scale_factor)))
     
     h = ImageFilter.GaussianBlur(image_sigma)

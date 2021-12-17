@@ -150,9 +150,9 @@ def graphcut_segm(I, area, K, alpha, sigma):
     dh = maxy - miny + 1
     mask = np.zeros((h, w), dtype=np.int16)
     mask[miny:miny + dh, minx:minx + dw] = 1
-
+    print(np.shape(mask))
     grey = 0.2989 * I[:, :, 0] + 0.5870 * I[:, :, 1] + 0.1140 * I[:, :, 2]
-
+    # showgrey(mask)
     blur = 0.5  # amount of blur to reduce noise
     gauss = np.array([[math.exp(-(i * i) / (2 * blur * blur)) for i in range(-3, 4)]], dtype=np.float32)
     gauss = gauss / np.sum(gauss)  # normalize to one
@@ -185,10 +185,20 @@ def graphcut_example():
     scale_factor = 0.5  # image downscale factor
     area = [80, 110, 570, 300]  # image region to train foreground with [ minx, miny, maxx, maxy ]
     K = 16  # number of mixture components
-    alpha = 8.0  # maximum edge cost
-    sigma = 20.0  # edge cost decay factor
+    alpha = 40.0  # maximum edge cost
+    sigma = 10.0  # edge cost decay factor
 
-    img = Image.open('Images-jpg/tiger1.jpg')
+    # img = Image.open('Images-jpg/tiger1.jpg')
+
+    # img = Image.open('Images-jpg/orange.jpg')
+    # area = [60, 50, 550, 300]
+
+    img = Image.open('Images-jpg/tiger2.jpg')
+    area = [210, 105, 420, 210]
+    # img = Image.open('Images-jpg/tiger3.jpg')
+    # area = [120, 110, 500, 300]
+
+    # print(np.shape(img))
     img = img.resize((int(img.size[0] * scale_factor), int(img.size[1] * scale_factor)))
 
     area = [int(i * scale_factor) for i in area]
@@ -206,7 +216,7 @@ def graphcut_example():
     plt.subplot(1, 2, 2)
     plt.imshow(Image.fromarray(Iseg.astype(np.ubyte)))
     plt.axis('off')
-    plt.title("K=" + str(K))
+    plt.title("K=" + str(K) + ", alpha=" + str(alpha) + ", sigma=" + str(sigma))
     plt.show()
     img.save('result/graphcut.png')
 

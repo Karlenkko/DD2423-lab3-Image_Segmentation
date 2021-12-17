@@ -86,11 +86,14 @@ def mean_shift_segm(I, spatial_bandwidth, colour_bandwidth, num_iterations):
 def mean_shift_example():
     scale_factor = 0.5  # image downscale factor
     image_sigma = 1.0  # image preblurring scale
-    spatial_bandwidth = 30.0  # spatial bandwidth
-    colour_bandwidth = 30.0  # colour bandwidth
-    num_iterations = 40  # number of mean-shift iterations
+    spatial_bandwidth = 5.0  # spatial bandwidth
+    colour_bandwidth = 40.0  # colour bandwidth
+    num_iterations = 100  # number of mean-shift iterations
 
-    img = Image.open('Images-jpg/tiger1.jpg')
+    # img = Image.open('Images-jpg/tiger1.jpg')
+    # img = Image.open('Images-jpg/orange.jpg')
+    # img = Image.open('Images-jpg/tiger2.jpg')
+    img = Image.open('Images-jpg/tiger3.jpg')
     img = img.resize((int(img.size[0] * scale_factor), int(img.size[1] * scale_factor)))
 
     h = ImageFilter.GaussianBlur(image_sigma)

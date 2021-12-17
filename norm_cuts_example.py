@@ -214,15 +214,18 @@ def norm_cuts_segm(I, colour_bandwidth, radius, ncuts_thresh, min_area, max_dept
 ############################################
 
 def norm_cuts_example():
-    colour_bandwidth = 20.0  # color bandwidth
-    radius = 1               # maximum neighbourhood distance
-    ncuts_thresh = 0.10      # cutting threshold
-    min_area = 200           # minimum area of segment
+    colour_bandwidth = 40.0  # color bandwidth
+    radius = 6               # maximum neighbourhood distance
+    ncuts_thresh = 0.1      # cutting threshold
+    min_area = 300           # minimum area of segment
     max_depth = 12           # maximum splitting depth
     scale_factor = 0.25      # image downscale factor
     image_sigma = 0.5        # image preblurring scale
 
     img = Image.open('Images-jpg/tiger1.jpg')
+    # img = Image.open('Images-jpg/orange.jpg')
+    # img = Image.open('Images-jpg/tiger2.jpg')
+    # img = Image.open('Images-jpg/tiger3.jpg')
     img = img.resize((int(img.size[0]*scale_factor), int(img.size[1]*scale_factor)))
      
     h = ImageFilter.GaussianBlur(image_sigma)
@@ -236,11 +239,12 @@ def norm_cuts_example():
     img = Image.fromarray(Inew.astype(np.ubyte))
     plt.subplot(1, 2, 1)
     plt.imshow(img)
+    plt.title("min_area=" + str(min_area) + ", radius=" + str(radius))
     plt.axis('off')
     plt.subplot(1, 2, 2)
     plt.imshow(Image.fromarray(Iseg.astype(np.ubyte)))
     plt.axis('off')
-    plt.title("min_area=" + str(min_area) + ", max_depth=" + str(max_depth) + ", ncuts_thresh=" + str(ncuts_thresh) + ", colour_bandwidth=" + str(colour_bandwidth))
+    plt.title("ncuts_thrsh=" + str(ncuts_thresh) + ", c_bandw=" + str(colour_bandwidth))
     plt.show()
     img.save('result/normcuts1.png')
 
